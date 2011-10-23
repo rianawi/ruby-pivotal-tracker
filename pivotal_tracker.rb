@@ -10,7 +10,7 @@ require 'cgi'
 
 class Tracker
   
-  def initialize(project_id = '123', token = '679933bbb5392c15b03534b4d6aa3b7e', ssl=true)
+  def initialize(project_id = '393253', token = '679933bbb5392c15b03534b4d6aa3b7e', ssl=true)
     @project_id, @token, @ssl = project_id, token, ssl
     protocol = @ssl ? 'https' : 'http'
     port     = @ssl ? '443'   : '80'
