@@ -14,14 +14,14 @@ class Tracker
     @project_id, @token, @ssl = project_id, token, ssl
     protocol = @ssl ? 'https' : 'http'
     port     = @ssl ? '443'   : '80'
-    @base_url = "#{protocol}://www.pivotaltracker.com:#{port}/services/v1/projects"
+    @base_url = "#{protocol}://www.pivotaltracker.com:#{port}/services/v3/projects"
   end
   
   def project
     resource_uri = URI.parse("#{@base_url}/#{@project_id}")
    
     response = net_http(resource_uri).start do |http|
-      http.get(resource_uri.path, {'Token' => @token})
+      http.get(resource_uri.path, {'X-TrackerToken' => @token})
     end
     validate_response(response.body)
     doc = Hpricot(response.body).at('project')
@@ -35,7 +35,7 @@ class Tracker
   def stories
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories")
     response = net_http(resource_uri).start do |http|
-      http.get(resource_uri.path, {'Token' => @token})
+      http.get(resource_uri.path, {'X-TrackerToken' => @token})
     end
     validate_response(response.body)
     
@@ -61,7 +61,7 @@ class Tracker
     
     resource_uri = URI.parse(uri)
     response = net_http(resource_uri).start do |http|
-      http.get(resource_uri.path, {'Token' => @token})
+      http.get(resource_uri.path, {'X-TrackerToken' => @token})
     end
     validate_response(response.body)
     
@@ -78,7 +78,7 @@ class Tracker
   def find_story(id)
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories/#{id}")
     response = net_http(resource_uri).start do |http|
-      http.get(resource_uri.path, {'Token' => @token, 'Content-Type' => 'application/xml'})
+      http.get(resource_uri.path, {'X-TrackerToken' => @token, 'Content-Type' => 'application/xml'})
     end
     validate_response(response.body)
     story_xml_to_hash(response.body)
@@ -88,7 +88,7 @@ class Tracker
     story_xml = build_story_xml(story)
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories")
     response = net_http(resource_uri).start do |http|
-      http.post(resource_uri.path, story_xml, {'Token' => @token, 'Content-Type' => 'application/xml'})
+      http.post(resource_uri.path, story_xml, {'X-TrackerToken' => @token, 'Content-Type' => 'application/xml'})
     end
     validate_response(response.body)
     story_xml_to_hash(response.body)
@@ -98,7 +98,7 @@ class Tracker
     story_xml = build_story_xml(story)
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories/#{story[:id]}")
     response = net_http(resource_uri).start do |http|
-      http.put(resource_uri.path, story_xml, {'Token' => @token, 'Content-Type' => 'application/xml'})
+      http.put(resource_uri.path, story_xml, {'X-TrackerToken' => @token, 'Content-Type' => 'application/xml'})
     end
     validate_response(response.body)
     story_xml_to_hash(response.body)
@@ -107,7 +107,7 @@ class Tracker
   def delete_story(story_id)
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories/#{story_id}")
     response = net_http(resource_uri).start do |http|
-      http.delete(resource_uri.path, {'Token' => @token})
+      http.delete(resource_uri.path, {'X-TrackerToken' => @token})
     end
     validate_response(response.body)
     story_id
@@ -117,7 +117,7 @@ class Tracker
     resource_uri = URI.parse("#{@base_url}/#{@project_id}/stories/#{story_id}/notes")
     comment_xml = "<note><text>#{text}</text></note>"
     response = net_http(resource_uri).start do |http|
-      http.post(resource_uri.path, comment_xml, {'Token' => @token, 'Content-Type' => 'application/xml'})
+      http.post(resource_uri.path, comment_xml, {'X-TrackerToken' => @token, 'Content-Type' => 'application/xml'})
     end
     validate_response(response.body)
     doc = Hpricot(response.body).at('note')
@@ -139,7 +139,7 @@ private
 
   def validate_response(body)
     response = Hpricot(body).at('response')
-    if response[:success]=='false'      
+    if response && response[:success]=='false'
       raise TrackerException.new((response/'message').innerHTML)
     end
   end
